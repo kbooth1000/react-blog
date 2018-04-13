@@ -23,32 +23,44 @@ let postBeingEdited = null;
 let Greeting = ({
         name
     }) =>
-    h('h1', { className: 'greeting' }, `Howdy, ${name}!`);
+    h('h1', {
+        className: 'greeting'
+    }, `Howdy, ${name}!`);
 
 let Footer = ({
         copyright
     }) =>
-    h('div', { className: 'footer' }, `Copyright ${copyright}`);
+    h('div', {
+        className: 'footer'
+    }, `Copyright ${copyright}`);
 
 let Title = ({
         title
     }) =>
-    h('h1', { className: 'title' }, title);
+    h('h1', {
+        className: 'title'
+    }, title);
 
 let Author = ({
         author
     }) =>
-    h('h4', { className: 'author' }, author);
+    h('h4', {
+        className: 'author'
+    }, author);
 
 let Body = ({
         body
     }) =>
-    h('p', { className: 'body' }, body);
+    h('p', {
+        className: 'body'
+    }, body);
 
 let Image = ({
         imagepath
     }) =>
-    h('img', { src: `${imagepath}` });
+    h('img', {
+        src: `${imagepath}`
+    });
 
 let Post = props => h('section', null, [
     h(Title, props),
@@ -61,48 +73,48 @@ let Post = props => h('section', null, [
 let deletePost = function (id) {
     posts = posts.filter((post) => post.id !== id);
     console.log('posts: ', posts);
-    update();
 }
-let DeletePostButton = ({id}) =>
+let DeletePostButton = ({
+        id
+    }) =>
     h('button', {
         onClick: () => deletePost(id)
     }, 'Delete');
 
 let updatePost = function (props) {
-    console.log('props.body, value: ',  props.body);
+    console.log('props.body, value: ', props.body);
     postToEdit = posts.find(post => post.id === props.id);
     postToEdit.body = props.body;
     postBeingEdited = null;
-    update();
 }
 
 let updatePostBody = function (props, value) {
     let post = posts.find(post => post.id === props.id);
     console.log('post: ', post.body, value);
     post.body = value;
-    update();
 }
 
 let EditSubmitButton = props => h('button', {
-     value: 'Submit',  onClick: (event) => updatePost(props) 
+    value: 'Submit',
+    onClick: (event) => updatePost(props)
 }, 'Save');
 
-let PostEditField = props => h('textarea', {rows:'10', cols:'30', value:props.body,
+let PostEditField = props => h('textarea', {
+    rows: '10',
+    cols: '30',
+    value: props.body,
     onChange: (event) => updatePostBody(props, event.target.value)
 });
 
-let editPost = function (post) {
-    console.log('Edit this: ', post.body);
-    postBeingEdited = post;
-    update();
-}
+
 
 let EditPostButton = props => h('button', {
     onClick: () => editPost(props)
 }, 'Edit');
 
-let PostEditForm = (props) => {console.log('PostEditForm: ', props.body);
-return h('form', {}, [
+let PostEditForm = (props) => {
+    console.log('PostEditForm: ', props.body);
+    return h('form', {}, [
         h(PostEditField, props),
         h(EditSubmitButton, props)
     ]);
@@ -110,34 +122,43 @@ return h('form', {}, [
 
 let PostList = props =>
     h('div', null, props.posts.map((post) => {
-        if (postBeingEdited && post.id === postBeingEdited.id) {
+        if (props.postBeingEdited && props.post.id === props.postBeingEdited.id) {
             return h(PostEditForm, post);
         } else {
             return h(Post, post);
         }
-    })
-);
+    }));
 
-let Page = props =>
-    h('div', {
-        className: 'container'
-    }, [
-        h(Greeting, {
-            name: 'Louise'
-        }),
-        h(PostList, props),
-        h(Footer, {
-            copyright: '2018'
-        })
-    ])
+class Page extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            postBeingEdited: null,
+            posts: posts
+        };
+    }
+    
+    render() {
+        let {posts, postBeingEdited } = this.state;
+        let editPost = (post)=>{
+            console.log('Edit this: ', post.body);
+            this.state.postBeingEdited = post;
+        }
 
-
-let update = function () {
-    ReactDOM.render(
-        h(Page, {
-            posts
-        }),
-        root
-    );
+        return h('div', {
+            className: 'container'
+        }, [
+            h(Greeting, {
+                name: 'Louise'
+            }),
+            h(PostList, { posts, postBeingEdited }),
+            h(Footer, {
+                copyright: '2018'
+            })
+        ]);
+    }
 }
-update();
+
+ReactDOM.render(
+    h(Page), root
+);
