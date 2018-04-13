@@ -87,7 +87,7 @@ let EditSubmitButton = props => h('button', {
      value: 'Submit',  onClick: (event) => updatePost(props) 
 }, 'Save');
 
-let PostEditField = props => h('textarea', {rows:'10', cols:'30',
+let PostEditField = props => h('textarea', {rows:'10', cols:'30', value:props.body,
     onChange: (event) => updatePostBody(props, event.target.value)
 });
 
@@ -101,7 +101,7 @@ let EditPostButton = props => h('button', {
     onClick: () => editPost(props)
 }, 'Edit');
 
-let PostEditForm = (props) => {console.log('PostEditForm: ', props);
+let PostEditForm = (props) => {console.log('PostEditForm: ', props.body);
 return h('form', {}, [
         h(PostEditField, props),
         h(EditSubmitButton, props)
