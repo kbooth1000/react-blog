@@ -68,33 +68,27 @@ let DeletePostButton = ({id}) =>
         onClick: () => deletePost(id)
     }, 'Delete');
 
-let updatePost = function (props, value) {
-    console.log('props.body, value: ',  value);
-    Object.assign(props.body, value);
-    postToEdit = posts.find((post) => post.id === props.id);
-    // postToEdit.body = value;
-    // Object.assign(postToEdit, value);
+let updatePost = function (props) {
+    console.log('props.body, value: ',  props.body);
+    postToEdit = posts.find(post => post.id === props.id);
+    postToEdit.body = props.body;
+    postBeingEdited = null;
     update();
 }
 
 let updatePostBody = function (props, value) {
     let post = posts.find(post => post.id === props.id);
-    // updatePost(props, value);
-    // Object.assign(post.body, value);
-    console.log('post: ', post.body);
+    console.log('post: ', post.body, value);
     post.body = value;
     update();
 }
 
 let EditSubmitButton = props => h('button', {
-    type: 'submit',  value: 'Submit'/*, 
-    onClick: () => updatePostBody(props, ) */
+     value: 'Submit',  onClick: (event) => updatePost(props) 
 }, 'Save');
 
 let PostEditField = props => h('textarea', {rows:'10', cols:'30',
-    onChange: (event) => updatePostBody(props, event.target.value)/*, 
-    onChange: (event) => updatePostBody(props, event.value) */
-    
+    onChange: (event) => updatePostBody(props, event.target.value)
 });
 
 let editPost = function (post) {
@@ -107,12 +101,12 @@ let EditPostButton = props => h('button', {
     onClick: () => editPost(props)
 }, 'Edit');
 
-let PostEditForm = props => h('form', {
-     
-    onSubmit: (event) => updatePost(props, event.target.value)  }, [
-    h(PostEditField, props),
-    h(EditSubmitButton, props)
-]);
+let PostEditForm = (props) => {console.log('PostEditForm: ', props);
+return h('form', {}, [
+        h(PostEditField, props),
+        h(EditSubmitButton, props)
+    ]);
+}
 
 let PostList = props =>
     h('div', null, props.posts.map((post) => {
