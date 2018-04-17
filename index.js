@@ -1,190 +1,151 @@
-const h = React.createElement;
 const root = document.querySelector('.react-root');
 
+let Greeting = ({ person }) =>
+    <h1 className="greeting">Hi {person}!</h1>
+let Title = () => <h1>React Blog</h1>
+let Footer = () => <footer>Copyright 2018</footer>
 
-let postBeingEdited = null;
+let DeletePostButton = ({ post, removePost }) =>
+    <button
+        className="delete-button"
+        onClick={() => removePost(post)}
+    >
+        Remove Post
+    </button>
 
-let Greeting = ({
-        name
-    }) =>
-    h('h1', {
-        className: 'greeting'
-    }, `Howdy, ${name}!`);
+let EditPostButton = ({ post, editPost }) =>
+    <button
+        onClick={() => editPost(post)}
+    >
+        Edit Post
+    </button>
 
-let Footer = ({
-        copyright
-    }) =>
-    h('div', {
-        className: 'footer'
-    }, `Copyright ${copyright}`);
+let EditPostForm = ({ post, postBeingEdited, updateTitle, updateBody, savePost }) =>
+    <form><label>Title:
+        <input key="1" value={postBeingEdited.title} onChange={(event) => updateTitle(postBeingEdited, event.target.value)} /></label><br />
+        <label>Content:
+        <textarea key="2" value={postBeingEdited.body} rows="10"
+                style={{ width: '100%' }} onChange={(event) => updateBody(postBeingEdited, event.target.value)} /></label>
+        <button key="3" onClick={() => savePost(postBeingEdited)}>Save</button>
+    </form>
 
-let Title = ({
-        title
-    }) =>
-        h('h1', {
-        className: 'title'
-    }, title);
-
-let Author = ({
-        author
-    }) =>
-    h('h4', {
-        className: 'author'
-    }, author);
-
-let Body = ({
-        body
-    }) =>
-    h('p', {
-        className: 'body'
-    }, body);
-
-let Image = ({
-        imagepath
-    }) =>
-    h('img', {
-        src: `${imagepath}`
-    });
-//  #################################
-
-
-
-
-let DeletePostButton = ({
-        id, deletePost
-    }) =>
-    h('button', {
-        onClick: () => deletePost(id)
-    }, 'Delete');
-
-let updatePost = function (post, event) {
-    console.log('post.body, value: ', post.body);
-    postToEdit = posts.find(post => post.id === props.id);
-    postToEdit.body = props.body;
-    postBeingEdited = null;
-}
-
-// let updatePostBody = function ({post}, {posts}, value) {
-//      let blogpost = posts.find(blogpost => blogpost.id === post.id);
-//     console.log('post: ', post.body, value, (post === blogpost) );
-//     post.body = value;
-// }
-
-let EditSubmitButton = post => h('button', {
-    value: 'Submit',
-    onClick: (event) => updatePost(post, event)
-}, 'Save');
-
-let PostEditField = ({post, posts, updatePostBody, postBeingEdited}) => h('textarea', {
-    rows: '10',
-    cols: '30',
-    value: post.body //,
-    // onChange: (event) => updatePostBody({post}, {postBeingEdited}, {posts}, event.target.value)
-});
-
-let EditPostButton = ({editPost, post}) => { 
-return h('button', {
-    onClick: () => editPost(post)
-}, 'Edit');}
-
-let PostEditForm = ({post, posts, postBeingEdited, editPost, updatePostBody}) => {
-    console.log('PostEditForm: ', post.body);
-    return h('form', {}, [
-        h(PostEditField, {post, posts, updatePostBody, postBeingEdited}),
-        h(EditSubmitButton, {post})
-    ]);
-}
-
-let Post = (post, posts, postBeingEdited, editPost, deletePost) =>{ 
-    console.log('post, posts, postBeingEdited, editPost: ',post, posts, postBeingEdited, editPost);
-return h('section', null, [
-    h(Title, post),
-    h(Image, post),
-    h(Body, post),
-    h(Author, post),
-    h(DeletePostButton, post, deletePost),
-    h(EditPostButton, {editPost, post})
-]);}
-
-let PostList = ({posts, postBeingEdited, editPost, deletePost, updatePostBody }) => {
-    return h('div', null, posts.map((post) => {
-        if (postBeingEdited && post.id === postBeingEdited.id) {
-            return h(PostEditForm, {post, posts, postBeingEdited, editPost, updatePostBody});
-        } else {
-            return h(Post,  {
-                post, posts, postBeingEdited, editPost, deletePost
-            });
+let Post = ({ post, postBeingEdited, removePost, editPost, updateTitle, updateBody, savePost }) =>
+    <div>
+        <h2>{post.title}</h2>
+        <p>{post.body}</p>
+        <DeletePostButton post={post} removePost={removePost} />
+        <EditPostButton post={post} editPost={editPost} />
+        {
+            postBeingEdited && post.id === postBeingEdited.id &&
+            <EditPostForm
+                post={post}
+                postBeingEdited={postBeingEdited}
+                updateTitle={updateTitle}
+                updateBody={updateBody}
+                savePost={savePost}
+            />
         }
-    }));
-}
+       
+    </div>
 
+let PostList = ({
+    posts,
+    postBeingEdited,
+    removePost,
+    editPost,
+    updateTitle,
+    updateBody,
+    savePost
+}) =>
+    <div className="post-list">
+        {
+            posts.map(post => <Post key={post.id} post={post} postBeingEdited={postBeingEdited} removePost={removePost} editPost={editPost} updateTitle={updateTitle} updateBody={updateBody} savePost={savePost} />)
+        }
+    </div>
 
-
-
-/// Page class   ######
 class Page extends React.Component {
-    constructor(allPosts) {
-        super(allPosts);
+    constructor(props) {
+        super(props);
         this.state = {
-            postBeingEdited: null,
-            posts: allPosts
+            posts: [],
+            postBeingEdited: null
         };
     }
     
-    render() {
-        // let {posts, postBeingEdited } = this.state;
+    fetchData() {
+        fetch('https://jsonplaceholder.typicode.com/posts')
+            .then(res => res.json())
+            .then(posts => {
+                this.setState({ posts })
+            })
+    }
+    
+    componentDidMount() {
+        this.fetchData();
+    }
 
-        let updatePostBody = ({post}, {postBeingEdited}, {posts}, value) => {
+    render() {
+        // let posts = this.state.posts;
+        // let postBeingEdited = this.state.postBeingEdited;
+        let { posts, postBeingEdited } = this.state;
+
+        let removePost = (postToDelete) => {
+            let { id } = postToDelete;
+            let prunedPosts = this.state.posts.filter((post) => id !== post.id);
             this.setState({
-                postBeingEdited: Object.assign({}, post, value)
+                posts: prunedPosts
             });
         };
 
-        let deletePost = function (id) {
-            this.state.posts.setState( (post) => post.id === id);
-            console.log('posts: ', posts);
+        let editPost = (postToEdit) => {
+            this.setState({
+                postBeingEdited: Object.assign({}, postToEdit)
+            });
+        };
+
+        let updateTitle = (postToEdit, title) => {
+            this.setState({
+                postBeingEdited: Object.assign({}, postToEdit, { title })
+            });
+        };
+
+        let updateBody = (postToEdit, body) => {
+            this.setState({
+                postBeingEdited: Object.assign({}, postToEdit, { body })
+            });
+        };
+
+        let savePost = (postToEdit) => {
+            let posts = this.state.posts.slice();
+            let post = posts.find(post => post.id === postToEdit.id);
+            Object.assign(post, postToEdit);
+            this.setState({
+                posts,
+                postBeingEdited: null
+            });
+        };
+
+        let refresh = () => {
+            this.fetchData();
         }
 
-        let editPost = (post)=>{
-            console.log('Edit this: ', post.body);
-            this.setState({postBeingEdited : post});
-        }
-
-        return h('div', {
-            className: 'container'
-        }, [
-            h(Greeting, {
-                name: 'Louise'
-            }),
-            h(PostList, { 
-                posts:this.state.posts.allPosts, 
-                postBeingEdited:this.state.postBeingEdited,
-                editPost:editPost,
-                deletePost:deletePost,
-                updatePostBody:updatePostBody
-            }),
-            h(Footer, {
-                copyright: '2018'
-            })
-        ]);
+        return (
+            <div>
+                <Title />
+                <Greeting person="Louise" />
+                <button onClick={refresh}>Refresh</button>
+                <PostList
+                    posts={posts}
+                    postBeingEdited={postBeingEdited}
+                    removePost={removePost}
+                    editPost={editPost}
+                    updateTitle={updateTitle}
+                    updateBody={updateBody}
+                    savePost={savePost}
+                />
+            </div>
+        )
     }
 }
 
-ReactDOM.render(
-    h(Page, { allPosts:[{
-        id: '1',
-        title: 'My first blog post',
-        author: 'Catfish McGee',
-        imagepath: 'img/cmcgee.png',
-        body: 'Well, let me tell you a little story. It all began...'
-    },
-
-    {
-        id: '2',
-        title: 'Sweet Potato Pie',
-        author: 'Calpernia',
-        image: 'img/calpernia.png',
-        body: 'One of my favorite cold-weather dishes is sweet potato ...'
-    }
-] }), root
-);
+ReactDOM.render(<Page />, root);
